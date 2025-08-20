@@ -1,0 +1,87 @@
+# Schema Configuration for Stage-2 Data Processing
+# Defines domains, unit types, document types, relations, and citation rules
+
+schema:
+  # Legal domains and jurisdictions
+  domains:
+    civil_law:
+      - "contract law"
+      - "property law"
+      - "tort law"
+      - "family law"
+    criminal_law:
+      - "penal code"
+      - "criminal procedure"
+      - "evidence law"
+    administrative_law:
+      - "regulatory compliance"
+      - "government procedures"
+      - "public administration"
+    commercial_law:
+      - "corporate law"
+      - "securities law"
+      - "banking law"
+      - "intellectual property"
+    
+  # Document type classifications
+  document_types:
+    law:
+      authority_level: 1
+      binding: true
+      precedence: "highest"
+    regulation:
+      authority_level: 2
+      binding: true
+      precedence: "high"
+    circular:
+      authority_level: 3
+      binding: false
+      precedence: "medium"
+    guideline:
+      authority_level: 4
+      binding: false
+      precedence: "low"
+      
+  # Legal unit types for document structure
+  unit_types:
+    hierarchical_order:
+      - "part"
+      - "chapter"
+      - "section"
+      - "article"
+      - "paragraph"
+      - "clause"
+      - "item"
+      - "note"
+      - "annex"
+      
+  # Citation rules and formats
+  citation_rules:
+    formats:
+      article: "ماده {num_label}"
+      paragraph: "بند {num_label}"
+      clause: "تبصره {num_label}"
+      section: "فصل {num_label}"
+      chapter: "باب {num_label}"
+      
+    # Cross-reference patterns
+    cross_reference_patterns:
+      - "مطابق ماده"
+      - "بر اساس بند"
+      - "طبق تبصره"
+      - "مندرج در فصل"
+      
+  # Relationship types between documents
+  relations:
+    amendment: "تعدیل"
+    repeal: "لغو"
+    supplement: "الحاق"
+    reference: "ارجاع"
+    implementation: "اجرا"
+    
+  # Quality metrics for content validation
+  quality_metrics:
+    completeness_score: 0.8
+    accuracy_score: 0.9
+    relevance_score: 0.7
+    freshness_days: 365

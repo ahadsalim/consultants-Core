@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  core_db:
+    image: postgres:15
+    container_name: core_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - core_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${CORE_DB_EXTERNAL_PORT}:5432"
+    networks:
+      - advisor_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - advisor_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  core_adminer:
+    image: adminer:latest
+    container_name: core_adminer
+    ports:
+      - "${ADMINER_PORT}:8080"
+    networks:
+      - advisor_net
+    depends_on:
+      - core_db
+
+  core_api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: core_api
+    environment:
+      - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_BUCKET=${S3_BUCKET}
+      - JWT_SECRET=${JWT_SECRET}
+      - BRIDGE_TOKEN=${BRIDGE_TOKEN}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - PROJECT_NAME=${PROJECT_NAME}
+      - ENV=${ENV}
+    ports:
+      - "${API_PORT}:8000"
+    networks:
+      - advisor_net
+    depends_on:
+      core_db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./api:/app
+    command: ["./prestart.sh"]
+
+volumes:
+  core_postgres_data:
+  minio_data:
+
+networks:
+  advisor_net:
+    external: true
