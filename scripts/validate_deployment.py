@@ -7,7 +7,7 @@ import requests
 import time
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 def check_service(name, url, timeout=10):
     """Check if a service is responding"""
@@ -60,7 +60,7 @@ def test_sync_endpoint():
         payload = {
             "documents": [],
             "qa_entries": [],
-            "batch_ts": datetime.utcnow().isoformat() + "Z"
+            "batch_ts": datetime.now(timezone.utc).isoformat() + "Z"
         }
         
         # Test without token (should fail)
