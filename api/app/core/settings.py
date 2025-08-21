@@ -21,7 +21,12 @@ class Settings(BaseSettings):
     BRIDGE_TOKEN: str = "secure_bridge_token_change_me"
     
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:5173", "http://admin-frontend:5173"]
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://admin-frontend:5173"
+    
+    @property
+    def allowed_origins_list(self) -> List[str]:
+        """Convert comma-separated string to list"""
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
     
     class Config:
         env_file = ".env"
