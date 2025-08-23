@@ -1,22 +1,29 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -e
 
-# Wait for database to be ready
-echo "Waiting for database to be ready..."
-sleep 10
+echo "Waiting for database (SQLAlchemy probe)..."
+python - << 'PY'
+import os, time, sys
+from sqlalchemy import create_engine, text
 
-# Run database migrations
-echo "Running database migrations..."
+dsn = os.environ.get("SQLALCHEMY_DATABASE_URI") or "postgresql+psycopg://postgres:postgres@core_db:5432/coredb"
+for i in range(60):
+    try:
+        engine = create_engine(dsn, pool_pre_ping=True)
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        print("DB is ready.")
+        break
+    except Exception as e:
+        print("DB not ready yet:", e)
+        time.sleep(2)
+else:
+    sys.exit("DB wait timeout")
+PY
+
+echo "Running Alembic migrations..."
 cd /app
 alembic upgrade head
 
-# Check if migrations were successful
-if [ $? -eq 0 ]; then
-    echo "Migrations completed successfully"
-else
-    echo "Migration failed, exiting..."
-    exit 1
-fi
-
-# Start the application
-echo "Starting FastAPI application..."
+echo "Starting FastAPI..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

@@ -77,7 +77,8 @@ $COMPOSE_CMD -f docker-compose.core.yml up -d --build
 
 # Wait for services to be ready
 echo "⏳ Waiting for services to start..."
-sleep 30
+echo "   Database readiness is handled by prestart.sh using pg_isready"
+sleep 15
 
 # Validate deployment
 echo "🔍 Validating deployment..."
