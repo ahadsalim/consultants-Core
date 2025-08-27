@@ -59,7 +59,7 @@ class SyncImportRequest(BaseModel):
     batch_ts: str = Field(..., description="RFC3339 timestamp")
 
 
-@router.post("/sync/import")
+@router.post("/import")
 async def sync_import(
     request: SyncImportRequest,
     db: Session = Depends(get_db),
