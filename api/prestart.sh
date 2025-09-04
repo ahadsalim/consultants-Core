@@ -4,9 +4,16 @@ set -e
 echo "Waiting for database (SQLAlchemy probe)..."
 python - << 'PY'
 import os, time, sys
+try:
+    import psycopg2
+    print("psycopg2 imported successfully")
+except ImportError as e:
+    print(f"psycopg2 import error: {e}")
+    sys.exit(1)
+
 from sqlalchemy import create_engine, text
 
-dsn = os.environ.get("SQLALCHEMY_DATABASE_URI") or "postgresql+psycopg://postgres:postgres@core_db:5432/coredb"
+dsn = os.environ.get("SQLALCHEMY_DATABASE_URI") or "postgresql://postgres:postgres@core_db:5432/coredb"
 for i in range(60):
     try:
         engine = create_engine(dsn, pool_pre_ping=True)
@@ -15,7 +22,8 @@ for i in range(60):
         print("DB is ready.")
         break
     except Exception as e:
-        print("DB not ready yet:", e)
+        print(f"DB not ready yet (attempt {i+1}/60):", e)
+        print(f"Using DSN: {dsn}")
         time.sleep(2)
 else:
     sys.exit("DB wait timeout")
